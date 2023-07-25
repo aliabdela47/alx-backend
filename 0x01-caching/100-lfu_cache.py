@@ -1,36 +1,51 @@
 #!/usr/bin/env python3
-"""LFU Caching"""
+"""
+100-lfu_cache.py
+"""
+
 from base_caching import BaseCaching
-from collections import OrderedDict
+from collections import defaultdict
 
 
 class LFUCache(BaseCaching):
-    """LFU Caching System"""
+    """ LFUCache class that inherits from BaseCaching """
     def __init__(self):
-        """initialises the class instance"""
+        """ Initialize """
         super().__init__()
-        self.cache_data = OrderedDict()
-        self.mru = ""
+        self.frequency = defaultdict(int)
+        self.min_frequency = 0
+        self.order = []
+
+    def update_frequency(self, key):
+        """ Update frequency of the key """
+        self.frequency[key] += 1
+        if self.frequency[key] > self.min_frequency:
+            self.min_frequency = self.frequency[key]
 
     def put(self, key, item):
-        """adds item in cache"""
-        if key and item:
+        """ Add an item in the cache """
+        if key is not None and item is not None:
             if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
-                if key in self.cache_data:
-                    self.cache_data.updat({key: item})
-                    self.mru
-                else:
-                    key_discarded = self.mru
-                    del self.cache_data[key_discarded]
-                    print('DISCARD: {}'.format(key_discarded))
-                    self.cache_data[key] = item
-                    self.mru = key
-            else:
-                self.cache_data[key] = item
-                self.mru = key
+                lfu_keys = [
+                    k for k, v in self.frequency.items()
+                    if v == self.min_frequency
+                ]
+                for k in self.order[:]:
+                    if k in lfu_keys:
+                        self.order.remove(k)
+                        del self.cache_data[k]
+                        del self.frequency[k]
+                        print("DISCARD: {}".format(k))
+
+                self.min_frequency += 1
+
+            self.cache_data[key] = item
+            self.update_frequency(key)
+            self.order.append(key)
 
     def get(self, key):
-        """gets na item corresponding to key"""
-        if key in self.cache_data:
-            self.mru = key
+        """ Get an item by key """
+        if key is not None and key in self.cache_data:
+            self.update_frequency(key)
             return self.cache_data[key]
+        return None

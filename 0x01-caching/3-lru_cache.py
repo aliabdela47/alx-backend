@@ -1,29 +1,35 @@
 #!/usr/bin/env python3
-"""LRU Caching"""
+"""
+3-lru_cache.py
+"""
+
 from base_caching import BaseCaching
-from collections import OrderedDict
 
 
 class LRUCache(BaseCaching):
-    """LRU Caching system"""
+    """ LRUCache class that inherits from BaseCaching """
+
     def __init__(self):
-        """initialises the calss instance"""
+        """ Initialize """
         super().__init__()
-        self.cache_data = OrderedDict()
+        self.order = []
 
     def put(self, key, item):
-        """adds item value corresponding to key
-        the method move_to_end moves key to end to access lru
-        """
-        if key and item:
+        """ Add an item in the cache """
+        if key is not None and item is not None:
+            if key in self.cache_data:
+                self.order.remove(key)
+            elif len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                lru_key = self.order.pop(0)
+                del self.cache_data[lru_key]
+                print("DISCARD: {}".format(lru_key))
             self.cache_data[key] = item
-            self.cache_data.move_to_end(key)
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            key_discarded = self.cache_data.popitem(last=False)
-            print('DISCARD: {}'.format(discarded[0]))
+            self.order.append(key)
 
     def get(self, key):
-        """gets an item corresponding to key"""
-        if key in self.cache_data:
-            self.cache_data.move_to_end(key)
+        """ Get an item by key """
+        if key is not None and key in self.cache_data:
+            self.order.remove(key)
+            self.order.append(key)
             return self.cache_data[key]
+        return None

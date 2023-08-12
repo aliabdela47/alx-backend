@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
-"""simple pagination"""
-
+"""
+    Simple pagination.
+"""
 import csv
 import math
-from typing import List, Tuple
+from typing import List
+
+
+def index_range(page, page_size):
+    """
+        Returns the range of indexes for a given page.
+    """
+    start = (page - 1) * page_size
+    end = page * page_size
+    return start, end
 
 
 class Server:
@@ -14,7 +24,7 @@ class Server:
     def __init__(self):
         self.__dataset = None
 
-    def dataset(self) -> List[List]:
+    def dataset(self) -> List[List]:  # sourcery skip: identity-comprehension
         """Cached dataset
         """
         if self.__dataset is None:
@@ -26,32 +36,41 @@ class Server:
         return self.__dataset
 
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
-            """Class returns list of baby names or assert error"""
-            assert(isinstance(page, int) and isinstance(page_size, int))
-            assert(page > 0 and page_size > 0)
-            [begin, finish] = index_range(page, page_size)
-            return self.dataset()[begin: finish]
+        """
+            Returns a page of data.
+        """
+        assert isinstance(page, int) and page > 0
+        assert isinstance(page_size, int) and page_size > 0
+        self.dataset()
+
+        if self.dataset() is None:
+            return []
+
+        indexRange = index_range(page, page_size)
+        return self.dataset()[indexRange[0]:indexRange[1]]
 
     def get_hyper(self, page: int = 1, page_size: int = 10) -> dict:
-        """Returns a dictionary of: page_size, page, data, next_page,
-        prev_page, total_pages.
+        # sourcery skip: inline-immediately-returned-variable
         """
-        dataset_acc = self.get_page(page, page_size)
+            Returns info about dataset.
+        """
+        data = self.get_page(page, page_size)
+        dataSet = self.__dataset
+        lenSet = len(dataSet) if dataSet else 0
 
-        page_dict = math.ceil(len(self.__dataset) / page_size)
+        totalPages = math.ceil(lenSet / page_size) if dataSet else 0
+        page_size = len(data) if data else 0
 
-        return {
-            'page_size': len(dataset_acc),
+        prevPage = page - 1 if page > 1 else None
+        nextPage = page + 1 if page < totalPages else None
+
+        hyperMedia = {
+            'page_size': page_size,
             'page': page,
-            'data': dataset_acc,
-            'next_page': page + 1 if (page + 1) <= page_dict else None,
-            'prev_page': page - 1 if (page - 1) > 0 else None,
-            'total_pages': page_dict
+            'data': data,
+            'next_page': nextPage,
+            'prev_page': prevPage,
+            'total_pages': totalPages
         }
 
-        
-def index_range(page: int, page_size: int) -> Tuple[int, int]:
-    """ returns a tuple with corresponding index to range of indexes to return
-        in a list for particular pagination parameters.
-    """
-    return ((page - 1) * page_size, page * page_size)
+        return hyperMedia

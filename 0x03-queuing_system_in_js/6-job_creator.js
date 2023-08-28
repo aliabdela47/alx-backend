@@ -3,8 +3,8 @@ import kue from 'kue';
 const queue = kue.createQueue();
 
 const jobData = {
-  phoneNumber: '0750182679',
-  message: 'This my phone number',
+  phoneNumber: '+251913124747',
+  message: 'Sending Notification To Ali Abdela Phone Number',
 };
 
 const job = queue.create('push_notification_code', jobData)
